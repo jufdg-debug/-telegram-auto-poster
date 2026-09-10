@@ -1,6 +1,12 @@
 name: Telegram Auto Poster
 
 on:
+  # Testa automaticamente alterações no código, sem publicar.
+  push:
+    branches: [main]
+    paths-ignore:
+      - "data/published.json"
+
   # Execução automática a cada 30 minutos
   schedule:
     - cron: "*/30 * * * *"
@@ -59,8 +65,8 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           # Preferência: input manual > variável do repositório > false
-          DRY_RUN: ${{ github.event.inputs.dry_run || vars.DRY_RUN || 'false' }}
-          MAX_VIDEOS_PER_RUN: ${{ github.event.inputs.max_videos || vars.MAX_VIDEOS_PER_RUN || '2' }}
+          DRY_RUN: ${{ github.event_name == 'push' && 'true' || github.event.inputs.dry_run || vars.DRY_RUN || 'false' }}
+          MAX_VIDEOS_PER_RUN: ${{ github.event_name == 'push' && '1' || github.event.inputs.max_videos || vars.MAX_VIDEOS_PER_RUN || '2' }}
           CAPTION_TEMPLATE: ${{ vars.CAPTION_TEMPLATE || '🔥 Novo vídeo\n\n{title}' }}
         run: |
           python main.py

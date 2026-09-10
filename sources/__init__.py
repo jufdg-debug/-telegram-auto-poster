@@ -12,6 +12,7 @@ from sources.base import BaseSource, VideoItem
 from sources.example_source import ExampleSource
 from sources.generic_source import GenericSource
 from sources.list_source import ListSource
+from sources.erome_source import EromeSource
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +21,7 @@ SOURCE_REGISTRY = {
     "example": ExampleSource,
     "generic": GenericSource,
     "lista": ListSource,
+    "erome": EromeSource,
 }
 
 
@@ -43,7 +45,7 @@ def get_all_sources(source_configs: List[Dict[str, Any]]) -> List[BaseSource]:
             sources.append(src)
             logger.info("Fonte carregada: %s (%s)", src.name, cfg.get("type"))
         except Exception as e:
-            logger.error("Não foi possível carregar fonte %s: %s", cfg, e)
+            logger.error("Não foi possível carregar fonte do tipo %s: %s", cfg.get("type"), e)
     return sources
 
 
@@ -56,3 +58,4 @@ __all__ = [
     "GenericSource",
     "ListSource",
 ]
+

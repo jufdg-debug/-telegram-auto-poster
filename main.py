@@ -65,16 +65,22 @@ def download_video(item: VideoItem, dest_dir: str) -> str | None:
         logger.warning("Item %s não possui media_url – pulando download", item.content_id)
         return None
 
+    headers = {"User-Agent": "telegram-auto-poster/1.0 (authorized-test)"}
+    is_erome = item.extra.get("source_type") == "erome"
+    if is_erome:
+        from sources.erome_source import USER_AGENT, page_url
+        headers.update({"User-Agent": USER_AGENT, "Referer": page_url(item.page_url)})
+
     # Checagem rápida de tamanho via HEAD (quando o servidor suporta)
     try:
         head = requests.head(
             item.media_url,
             timeout=REQUEST_TIMEOUT,
-            allow_redirects=True,
-            headers={"User-Agent": "telegram-auto-poster/1.0 (authorized-test)"},
+            allow_redirects=not is_erome,
+            headers=headers,
         )
         content_length = head.headers.get("Content-Length")
-        if content_length:
+        if head.ok and content_length and content_length.isdigit():
             size_mb = int(content_length) / (1024 * 1024)
             if size_mb > MAX_FILE_SIZE_MB:
                 logger.warning(
@@ -85,24 +91,29 @@ def download_video(item: VideoItem, dest_dir: str) -> str | None:
                 )
                 return None
     except requests.RequestException as e:
-        logger.debug("HEAD falhou (continuando com GET): %s", e)
+        logger.debug("HEAD falhou (continuando com GET)")
 
     filename = _safe_filename(item.content_id) + ".mp4"
     dest_path = os.path.join(dest_dir, filename)
 
-    logger.info("Baixando: %s", item.media_url)
+    logger.info("Baixando item: %s", item.content_id)
     try:
         with requests.get(
             item.media_url,
             stream=True,
+            allow_redirects=not is_erome,
             timeout=DOWNLOAD_TIMEOUT,
-            headers={"User-Agent": "telegram-auto-poster/1.0 (authorized-test)"},
+            headers=headers,
         ) as r:
             r.raise_for_status()
+            if r.is_redirect:
+                logger.error("A mídia exigiu um redirecionamento; download interrompido.")
+                return None
             # Verifica content-type grosseiramente
             ctype = r.headers.get("Content-Type", "").lower()
             if ctype and not any(x in ctype for x in ("video", "octet-stream", "mp4", "application")):
                 logger.warning("Content-Type suspeito (%s) para %s", ctype, item.content_id)
+                return None
 
             total = 0
             max_bytes = MAX_FILE_SIZE_MB * 1024 * 1024
@@ -127,7 +138,7 @@ def download_video(item: VideoItem, dest_dir: str) -> str | None:
         return dest_path
 
     except requests.RequestException as e:
-        logger.error("Falha no download de %s: %s", item.content_id, e)
+        logger.error("Falha no download de %s (erro de rede ou HTTP)", item.content_id)
         if os.path.exists(dest_path):
             os.remove(dest_path)
         return None
@@ -146,10 +157,9 @@ def process_item(item: VideoItem, source_name: str) -> bool:
 
     if DRY_RUN:
         logger.info(
-            "[DRY_RUN] Seria publicado: id=%s title=%r media=%s",
+            "[DRY_RUN] Seria publicado: id=%s title=%r",
             item.content_id,
             item.title,
-            item.media_url,
         )
         # Em dry-run ainda registramos para não repetir na próxima execução de teste
         # (pode comentar a linha abaixo se quiser que dry-run não marque)
@@ -170,7 +180,8 @@ def process_item(item: VideoItem, source_name: str) -> bool:
             item.content_id,
             title=item.title,
             source=source_name,
-            extra={"page_url": item.page_url},
+            extra=({"source_type": "erome"} if item.extra.get("source_type") == "erome"
+                   else {"page_url": item.page_url}),
         )
         return True
     except TelegramError as e:
@@ -207,6 +218,7 @@ def run() -> int:
         return 0
 
     sent_count = 0
+    source_errors = len(SOURCES) - len(sources)
 
     for source in sources:
         if sent_count >= MAX_VIDEOS_PER_RUN:
@@ -218,6 +230,7 @@ def run() -> int:
             candidates: List[VideoItem] = source.fetch_new_items()
         except Exception as e:
             logger.error("Erro ao buscar itens da fonte %s: %s", source.name, e)
+            source_errors += 1
             continue
 
         for item in candidates:
@@ -237,7 +250,7 @@ def run() -> int:
             pass
 
     logger.info("Execução concluída. Publicados nesta run: %d", sent_count)
-    return 0
+    return 1 if source_errors else 0
 
 
 if __name__ == "__main__":

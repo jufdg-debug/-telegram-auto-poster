@@ -2,7 +2,7 @@
 
 Sistema simples que monitora fontes autorizadas de vídeos e publica automaticamente no seu grupo privado do Telegram.
 
-Funciona 24/7 usando **GitHub Actions** (não precisa deixar nenhum computador ligado).
+Executa periodicamente usando **GitHub Actions** (não precisa deixar nenhum computador ligado). O agendamento de 30 minutos pode sofrer atrasos do GitHub.
 
 ---
 
@@ -177,7 +177,7 @@ telegram-auto-poster/
 
 ## 9. Limitações atuais
 
-- Funciona apenas com fontes que fornecem URL direta de mídia **autorizada**.
+- Aceita listas de URLs diretas e links de álbuns/perfis do Erome acessíveis sem login.
 - Não contorna login, CAPTCHA, DRM, paywall ou bloqueios.
 - Tamanho máximo de vídeo configurado em ~45 MB (limite do Telegram Bot é 50 MB).
 - A fonte de exemplo usa apenas vídeos públicos de teste (não é Erome nem conteúdo adulto).
@@ -202,3 +202,47 @@ telegram-auto-poster/
 5. Se estiver tudo ok, rode de novo com `dry_run = false`
 
 Qualquer dúvida é só perguntar.
+
+
+
+## 11. Usar seus álbuns ou perfil do Erome
+
+A fonte `erome` foi adicionada. Ela só é ativada quando `EROME_URLS` está configurado.
+O envio continua limitado a 2 vídeos por execução por padrão; o agendamento existente é de 30 minutos.
+
+### Configurar pelo iPhone
+
+1. Abra **Settings → Secrets and variables → Actions → Variables**.
+2. Crie ou edite `DRY_RUN` com o valor `true` para começar em modo de teste.
+3. Na aba **Secrets**, toque em **New repository secret**.
+4. Em **Name**, escreva `EROME_URLS`.
+5. Em **Secret**, cole o link do seu álbum (formato `https://www.erome.com/a/ID`) ou do seu perfil (formato `https://www.erome.com/USUARIO`). Pode colocar vários links, um por linha.
+6. Salve. O link não deve ser adicionado ao código do repositório.
+7. Abra **Actions → Telegram Auto Poster → Run workflow**, selecione `dry_run=true` e execute.
+8. Confira se os logs mostram vídeos detectados. O modo de teste verifica a descoberta, sem baixar, publicar ou alterar o histórico.
+9. Para testar um envio real, execute manualmente com `dry_run=false` e `max_videos=1`.
+10. Depois de confirmar a chegada do vídeo, altere a Variable `DRY_RUN` para `false` para habilitar os envios agendados.
+
+Não é necessário alterar seu token nem o ID do grupo. Para desativar apenas esta fonte, remova o Secret `EROME_URLS`.
+
+### Comportamento e limites
+
+- Álbuns não listados no perfil precisam de seus links diretos em `EROME_URLS`.
+- O perfil é consultado com `t=posts`, para pegar os próprios álbuns e excluir repostagens.
+- Só extrai arquivos de vídeo dos players dos álbuns; imagens são ignoradas.
+- Envia o Referer do álbum no download. Login, desafios de acesso e redirecionamentos de mídia não são contornados.
+- IDs de vídeos já enviados são filtrados antes do limite de candidatos, permitindo avançar ao longo das execuções.
+- URLs privadas não são impressas nos logs nem gravadas no histórico publicado pelo adaptador.
+- O limite existente de 45 MB continua aplicado; arquivos maiores são ignorados, sem compressão automática.
+- Por execução, consulta até 10 páginas por perfil e 100 álbuns. As Variables `EROME_MAX_PAGES` e `EROME_MAX_ALBUMS` permitem alterar esses limites.
+- Se não houver vídeos detectados, verifique o link e use diretamente o álbum. Mudanças no HTML ou nos servidores de mídia podem exigir atualização do adaptador.
+- A integração foi testada com HTML sintético. O acesso ao álbum real e o envio com seus Secrets devem ser verificados no Actions; não foram validados pelo ambiente de desenvolvimento.
+
+### Testes locais
+
+```bash
+pip install -r requirements.txt
+python -m unittest discover -s tests -v
+```
+
+Os testes simulam as respostas e não acessam vídeos reais nem enviam mensagens.

@@ -21,6 +21,10 @@ on:
         required: false
         default: "2"
 
+concurrency:
+  group: telegram-auto-poster
+  cancel-in-progress: false
+
 permissions:
   contents: write   # necessário para gravar o arquivo de estado (published.json)
 
@@ -44,8 +48,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Testar integração (sem publicar)
+        run: python -m unittest discover -s tests -v
+
       - name: Executar auto-poster
         env:
+          EROME_URLS: ${{ secrets.EROME_URLS }}
+          EROME_MAX_PAGES: ${{ vars.EROME_MAX_PAGES || '10' }}
+          EROME_MAX_ALBUMS: ${{ vars.EROME_MAX_ALBUMS || '100' }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           # Preferência: input manual > variável do repositório > false
@@ -82,3 +92,4 @@ jobs:
           else
             echo "Arquivo de estado ainda não existe."
           fi
+

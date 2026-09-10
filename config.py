@@ -48,7 +48,7 @@ DOWNLOAD_DIR = os.path.join(os.path.dirname(__file__), "downloads")
 # ------------------------------------------------------------
 # FONTES
 # Adicione ou remova fontes aqui.
-# Tipos disponíveis: "example", "lista", "generic"
+# Tipos disponíveis: "example", "lista", "generic", "erome"
 # ------------------------------------------------------------
 SOURCES: List[Dict[str, Any]] = [
     # Fonte de exemplo (vídeos públicos de teste) - pode remover se não quiser mais
@@ -75,3 +75,16 @@ SOURCES: List[Dict[str, Any]] = [
         ],
     },
 ]
+
+
+# Links privados ficam nos Secrets, nunca no código.
+EROME_URLS = os.getenv("EROME_URLS", "").strip()
+if EROME_URLS:
+    SOURCES.insert(0, {
+        "type": "erome",
+        "name": "Meus vídeos do Erome",
+        "urls": EROME_URLS,
+        "max_items": max(20, MAX_VIDEOS_PER_RUN * 5),
+        "max_pages": _int_env("EROME_MAX_PAGES", 10),
+        "max_albums": _int_env("EROME_MAX_ALBUMS", 100),
+    })

@@ -1,0 +1,14 @@
+{
+  "sample-mdn-flower": {
+    "title": "Flower (MDN / CC0 sample)",
+    "source": "Exemplo Seguro (vídeos de teste públicos)",
+    "published_at": "2026-09-10T16:01:25.035909+00:00",
+    "page_url": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"
+  },
+  "sample-bigbuckbunny-10s": {
+    "title": "Big Buck Bunny – 10s clip (test-videos.co.uk)",
+    "source": "Exemplo Seguro (vídeos de teste públicos)",
+    "published_at": "2026-09-10T16:01:28.089561+00:00",
+    "page_url": "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4"
+  }
+}

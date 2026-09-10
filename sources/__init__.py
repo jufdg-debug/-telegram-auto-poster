@@ -11,6 +11,7 @@ from typing import Any, Dict, List
 from sources.base import BaseSource, VideoItem
 from sources.example_source import ExampleSource
 from sources.generic_source import GenericSource
+from sources.list_source import ListSource
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +19,7 @@ logger = logging.getLogger(__name__)
 SOURCE_REGISTRY = {
     "example": ExampleSource,
     "generic": GenericSource,
+    "lista": ListSource,
 }
 
 
@@ -52,4 +54,5 @@ __all__ = [
     "get_all_sources",
     "ExampleSource",
     "GenericSource",
+    "ListSource",
 ]

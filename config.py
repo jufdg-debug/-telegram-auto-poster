@@ -48,22 +48,30 @@ DOWNLOAD_DIR = os.path.join(os.path.dirname(__file__), "downloads")
 # ------------------------------------------------------------
 # FONTES
 # Adicione ou remova fontes aqui.
-# Cada item é um dicionário com pelo menos "type" e "name".
-# Tipos disponíveis no momento: "example" (seguro para testes)
+# Tipos disponíveis: "example", "lista", "generic"
 # ------------------------------------------------------------
 SOURCES: List[Dict[str, Any]] = [
-    {
-        "type": "example",
-        "name": "fonte autorizada",
-        "base_url":"https://www.erome.com/xV4Z4D0R",
-        # Opcional: limite de itens por fonte nesta execução
-        "max_items": 2,
-    },
-    # Exemplo de como adicionar uma futura fonte autorizada:
+    # Fonte de exemplo (vídeos públicos de teste) - pode remover se não quiser mais
     # {
-    #     "type": "generic",          # ou o nome do seu adaptador
-    #     "name": "Minha Fonte Autorizada",
-    #     "base_url": "https://exemplo.com/feed",
-    #     "max_items": 3,
+    #     "type": "example",
+    #     "name": "Exemplo Seguro",
+    #     "max_items": 2,
     # },
+
+    # ============================================================
+    # FONTE TIPO "lista" - coloque aqui seus vídeos autorizados
+    # ============================================================
+    {
+        "type": "lista",
+        "name": "Meus vídeos autorizados",
+        "max_items": 3,
+        "videos": [
+            # Exemplo de como adicionar (substitua pelos seus links reais):
+            # {
+            #     "id": "video-001",                    # identificador único
+            #     "title": "Título do vídeo",           # aparece na legenda
+            #     "url": "https://exemplo.com/video.mp4",  # link DIRETO do arquivo
+            # },
+        ],
+    },
 ]

@@ -62,12 +62,22 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
             git add data/published.json
+
             if git diff --staged --quiet; then
               echo "Nenhuma alteração no estado."
             else
-              git commit -m "chore: atualiza estado de vídeos publicados [skip ci]"
-              git push
-              echo "Estado salvo no repositório."
+              git commit -m "chore: atualiza estado de vídeos publicados [skip ci]" || true
+
+              # Tenta push com retry simples (evita falha por corrida com outra execução)
+              for i in 1 2 3; do
+                git pull --rebase origin main || true
+                if git push origin main; then
+                  echo "Estado salvo no repositório."
+                  break
+                fi
+                echo "Push falhou (tentativa $i). Tentando novamente..."
+                sleep 3
+              done
             fi
           else
             echo "Arquivo de estado ainda não existe."

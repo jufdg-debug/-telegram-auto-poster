@@ -9,7 +9,7 @@ on:
 
   # Execução automática a cada 30 minutos
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "*/5 * * * *"
 
   # Permite rodar manualmente pelo botão "Run workflow"
   workflow_dispatch:

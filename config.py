@@ -54,7 +54,8 @@ DOWNLOAD_DIR = os.path.join(os.path.dirname(__file__), "downloads")
 SOURCES: List[Dict[str, Any]] = [
     {
         "type": "example",
-        "name": "Exemplo Seguro (vídeos de teste públicos)",
+        "name": "fonte autorizada",
+        "base_url":"https://www.erome.com/xV4Z4D0R",
         # Opcional: limite de itens por fonte nesta execução
         "max_items": 2,
     },

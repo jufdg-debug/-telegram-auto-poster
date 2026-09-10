@@ -1,0 +1,74 @@
+name: Telegram Auto Poster
+
+on:
+  # Execução automática a cada 30 minutos
+  schedule:
+    - cron: "*/30 * * * *"
+
+  # Permite rodar manualmente pelo botão "Run workflow"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Modo teste (true = não envia nada para o Telegram)"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+      max_videos:
+        description: "Máximo de vídeos nesta execução"
+        required: false
+        default: "2"
+
+permissions:
+  contents: write   # necessário para gravar o arquivo de estado (published.json)
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Instalar dependências
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Executar auto-poster
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          # Preferência: input manual > variável do repositório > false
+          DRY_RUN: ${{ github.event.inputs.dry_run || vars.DRY_RUN || 'false' }}
+          MAX_VIDEOS_PER_RUN: ${{ github.event.inputs.max_videos || vars.MAX_VIDEOS_PER_RUN || '2' }}
+          CAPTION_TEMPLATE: ${{ vars.CAPTION_TEMPLATE || '🔥 Novo vídeo\n\n{title}' }}
+        run: |
+          python main.py
+
+      - name: Salvar estado (published.json) se houver mudanças
+        if: always()
+        run: |
+          if [ -f data/published.json ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add data/published.json
+            if git diff --staged --quiet; then
+              echo "Nenhuma alteração no estado."
+            else
+              git commit -m "chore: atualiza estado de vídeos publicados [skip ci]"
+              git push
+              echo "Estado salvo no repositório."
+            fi
+          else
+            echo "Arquivo de estado ainda não existe."
+          fi

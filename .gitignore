@@ -34,9 +34,11 @@ ENV/
 env/
 
 # Data and temporary files
+# Permitimos o arquivo de estado published.json (é versionado de propósito)
 data/*.db
-data/*.json
+data/*
 !data/.gitkeep
+!data/published.json
 downloads/
 tmp/
 *.tmp

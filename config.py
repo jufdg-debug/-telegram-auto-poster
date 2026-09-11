@@ -34,9 +34,10 @@ CAPTION_TEMPLATE: str = os.getenv(
 )
 
 # Limites de segurança
-MAX_FILE_SIZE_MB: int = _int_env("MAX_FILE_SIZE_MB", 45)  # abaixo do limite de 50 MB do Telegram
+# Telegram Bot API hard limit is 50 MB. We stay just under it.
+MAX_FILE_SIZE_MB: int = _int_env("MAX_FILE_SIZE_MB", 49)
 REQUEST_TIMEOUT: int = _int_env("REQUEST_TIMEOUT", 60)
-DOWNLOAD_TIMEOUT: int = _int_env("DOWNLOAD_TIMEOUT", 120)
+DOWNLOAD_TIMEOUT: int = _int_env("DOWNLOAD_TIMEOUT", 180)
 
 # Caminho do arquivo de estado (publicado)
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
